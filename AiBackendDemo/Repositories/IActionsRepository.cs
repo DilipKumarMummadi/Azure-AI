@@ -13,5 +13,7 @@ namespace AiBackendDemo.Repositories
         Task UpdateActionAsync(Action action);
         Task AddActionAsync(Action action);
         Task<ActionEmbedding> SemanticSearchAsync(string searchText);
+        Task<string> GetActionSummaryAsync(int actionId);
+        Task<string> RagSearchAsync(string searchText);
     }
 }

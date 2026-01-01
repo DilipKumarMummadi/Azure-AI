@@ -28,7 +28,7 @@ public sealed class AiTextClassifier : IAiTextClassifier
         try
         {
             var prompt = BuildPrompt(text, allowedLabels);
-            var raw = await _client.CompleteAsync(prompt, temperature: 0.0, ct);
+            var raw = await _client.CompleteAsync(prompt, ct);
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             if (TryParseClassification(raw, allowedLabels, options, out var result))

@@ -24,7 +24,7 @@ public sealed class OpenAiClient : IOpenAiClient
         _httpClient.DefaultRequestHeaders.Add("api-key", apiKey);
     }
 
-    public async Task<string> CompleteAsync(string prompt, double temperature, CancellationToken ct)
+    public async Task<string> CompleteAsync(string prompt, CancellationToken ct)
     {
         var payload = new
         {
@@ -87,4 +87,37 @@ public sealed class OpenAiClient : IOpenAiClient
                   .Select(x => x.GetSingle())
                   .ToArray();
     }
+
+    public async Task<string> SummarizeAsync(string prompt, CancellationToken ct)
+    {
+        var payload = new
+        {
+            messages = new[]
+            {
+            new
+            {
+                role = "system",
+                content = "You are a backend summarization engine. Summarize factually and concisely."
+            },
+            new { role = "user", content = prompt }
+        },
+            temperature = 1,
+            max_completion_tokens = 150
+        };
+
+        var json = JsonSerializer.Serialize(payload);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var url =
+            $"openai/deployments/{DeploymentName}/chat/completions?api-version={ApiVersion}";
+        var response = await _httpClient.PostAsync(url, content, ct);
+        response.EnsureSuccessStatusCode();
+
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+        return doc.RootElement
+                  .GetProperty("choices")[0]
+                  .GetProperty("message")
+                  .GetProperty("content")
+                  .GetString()!;
+    }
+
 }
