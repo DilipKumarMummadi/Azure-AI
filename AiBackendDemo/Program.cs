@@ -1,12 +1,21 @@
+
+using Microsoft.EntityFrameworkCore;
+using AiBackendDemo;
+using AiBackendDemo.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddHttpClient<IOpenAiClient, OpenAiClient>();
+
 builder.Services.AddScoped<IAiTextClassifier, AiTextClassifier>();
+builder.Services.AddScoped<IActionsRepository, ActionsRepository>();
+// Register DbContext with PostgreSQL
+builder.Services.AddDbContext<AiBackendDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("StardomConnectionString")));
 
 
 var app = builder.Build();

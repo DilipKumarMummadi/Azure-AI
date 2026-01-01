@@ -57,4 +57,32 @@ public sealed class OpenAiClient : IOpenAiClient
                   .GetProperty("content")
                   .GetString()!;
     }
+
+    public async Task<float[]> CreateEmbeddingAsync(string text, CancellationToken ct)
+    {
+        var payload = new
+        {
+            input = text
+        };
+        var json = JsonSerializer.Serialize(payload);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var url =
+        "openai/deployments/text-embedding-3-small/embeddings?api-version=2024-02-15-preview";
+        var response = await _httpClient.PostAsync(url, content, ct);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(ct);
+            throw new InvalidOperationException(
+                $"Embedding request failed: {response.StatusCode} - {body}");
+        }
+        using var stream = await response.Content.ReadAsStreamAsync(ct);
+        using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+
+        return doc.RootElement
+                  .GetProperty("data")[0]
+                  .GetProperty("embedding")
+                  .EnumerateArray()
+                  .Select(x => x.GetSingle())
+                  .ToArray();
+    }
 }
