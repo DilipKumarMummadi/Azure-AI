@@ -9,5 +9,7 @@ namespace AiBackendDemo.Repositories
     {
         Task<IEnumerable<Action>> GetAllActionsAsync();
         Task<IEnumerable<Action>> SearchActionsAsync(string searchText);
+        Task UpdateActionAsync(Action action);
+        Task AddActionAsync(Action action);
     }
 }

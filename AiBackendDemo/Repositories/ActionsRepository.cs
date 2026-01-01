@@ -28,5 +28,22 @@ namespace AiBackendDemo.Repositories
                 .Where(a => a.Title.Contains(searchText) || (a.Description != null && a.Description.Contains(searchText)))
                 .ToListAsync();
         }
+        
+        public async Task UpdateActionAsync(Action action)
+        {
+            _context.Actions.Update(action);
+            await SaveChangesAsync();
+        }
+        
+        public async Task AddActionAsync(Action action)
+        {
+            await _context.Actions.AddAsync(action);
+            await SaveChangesAsync();
+        }
+        
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }

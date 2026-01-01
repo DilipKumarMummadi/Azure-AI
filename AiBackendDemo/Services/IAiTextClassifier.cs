@@ -1,3 +1,4 @@
+namespace AiBackendDemo.Services;
 public interface IAiTextClassifier
 {
     Task<ClassificationResult> ClassifyAsync(

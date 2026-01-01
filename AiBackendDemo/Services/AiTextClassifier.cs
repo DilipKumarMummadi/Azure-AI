@@ -1,5 +1,10 @@
 using System.Linq;
 using System.Text.Json;
+using AiBackendDemo.Clients;
+using AiBackendDemo.Models;
+using Microsoft.Extensions.Logging;
+
+namespace AiBackendDemo.Services;
 
 public sealed class AiTextClassifier : IAiTextClassifier
 {

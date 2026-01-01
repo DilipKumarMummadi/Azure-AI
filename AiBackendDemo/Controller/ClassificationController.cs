@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using AiBackendDemo.Services;
 
+namespace AiBackendDemo.Controller;
 [ApiController]
 [Route("api/classify")]
 public class ClassificationController : ControllerBase

@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using AiBackendDemo;
 using AiBackendDemo.Repositories;
+using AiBackendDemo.Services;
+using AiBackendDemo.Clients;
 
 var builder = WebApplication.CreateBuilder(args);
 

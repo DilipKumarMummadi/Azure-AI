@@ -10,6 +10,7 @@ namespace AiBackendDemo.Models
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string? ActionStatus { get; set; }
+        public float[]? Embedding { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

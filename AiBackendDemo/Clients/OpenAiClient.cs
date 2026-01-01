@@ -1,6 +1,8 @@
 using System.Text;
 using System.Text.Json;
 
+namespace AiBackendDemo.Clients;
+
 public sealed class OpenAiClient : IOpenAiClient
 {
     private readonly HttpClient _httpClient;
