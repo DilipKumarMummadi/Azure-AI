@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AiBackendDemo.DTOs;
 using AiBackendDemo.Models;
 using Action = AiBackendDemo.Models.Action;
 
@@ -11,5 +12,6 @@ namespace AiBackendDemo.Repositories
         Task<IEnumerable<Action>> SearchActionsAsync(string searchText);
         Task UpdateActionAsync(Action action);
         Task AddActionAsync(Action action);
+        Task<ActionEmbedding> SemanticSearchAsync(string searchText);
     }
 }

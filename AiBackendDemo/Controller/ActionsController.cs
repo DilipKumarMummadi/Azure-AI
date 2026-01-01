@@ -27,5 +27,15 @@ namespace AiBackendDemo.Controller
             var actions = await _actionsRepository.SearchActionsAsync(text);
             return Ok(actions);
         }
+
+        [HttpGet("semantic-search")]
+        public async Task<IActionResult> SemanticSearch([FromQuery] string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return BadRequest("Search text is required.");
+
+            var results = await _actionsRepository.SemanticSearchAsync(text);
+            return Ok(results);
+        }
     }
 }
