@@ -3,6 +3,7 @@ using AiBackendDemo.DTOs;
 using Action = AiBackendDemo.Models.Action;
 using AiBackendDemo.Clients;
 using System.Text;
+using AiBackendDemo.Services;
 
 namespace AiBackendDemo.Repositories
 {
@@ -10,10 +11,12 @@ namespace AiBackendDemo.Repositories
     {
         private readonly AiBackendDbContext _context;
         private readonly IOpenAiClient _openAiClient;
-        public ActionsRepository(AiBackendDbContext context, IOpenAiClient openAiClient)
+        private readonly IAgentPlanner _agentPlanner;
+        public ActionsRepository(AiBackendDbContext context, IOpenAiClient openAiClient, IAgentPlanner agentPlanner)
         {
             _context = context;
             _openAiClient = openAiClient;
+            _agentPlanner = agentPlanner;
         }
 
         public async Task<IEnumerable<Action>> GetAllActionsAsync()
@@ -132,7 +135,11 @@ Suggestions:
         {
             var actions = await GetAllOpenActionsAsync();
             var questionEmbedding = await _openAiClient.CreateEmbeddingAsync(searchText, CancellationToken.None);
-            var topActions = actions.Select(a => new { a.Title, a.Description, Score = CosineSimilarity(questionEmbedding, a.Embedding!) }).OrderByDescending(x => x.Score).Take(3).ToList();
+            var topActions = actions.Select(a => new { a.Title, a.Description, Score = CosineSimilarity(questionEmbedding, a.Embedding!) }).Where(x => x.Score >= 0.65).OrderByDescending(x => x.Score).Take(3).ToList();
+            if (!topActions.Any())
+            {
+                return "- No relevant open actions found for the given question.";
+            }
             var promot = BuildRagPrompt(
                 searchText,
                 BuildContext(topActions));
@@ -172,6 +179,48 @@ Question:
 
 Answer:
 """;
+        }
+
+        public async Task<Action?> GetActionByIdAsync()
+        {
+            // You may want to pass an actionId parameter to this method for real use
+            AgentState state = new AgentState();
+            const int MAX_STEPS = 5;
+
+            for (int step = 0; step < MAX_STEPS; step++)
+            {
+                var decision = await _agentPlanner.DecideAsync(state, CancellationToken.None);
+
+                switch (decision.Action)
+                {
+                    case AgentAction.SEARCH_ACTIONS:
+                        // Example: update state based on search, but do not return a new Action
+                        // state = await SearchActionsAsync("Test");
+                        break;
+
+                    case AgentAction.SUMMARIZE_ACTIONS:
+                        // Example: update state based on summary, but do not return a new Action
+                        // state = await GetActionSummaryAsync(state);
+                        break;
+
+                    case AgentAction.SUGGEST_RESOLUTION:
+                        // Example: update state based on RAG, but do not return a new Action
+                        // state = await RagSearchAsync(state);
+                        break;
+
+                    case AgentAction.STOP:
+                        // Try to get the action from the database if you have an ID in state
+                        // if (state.ActionId != null)
+                        // {
+                        //     return await _context.Actions.FindAsync(state.ActionId);
+                        // }
+                        return null;
+
+                    default:
+                        throw new InvalidOperationException("Unknown agent action");
+                }
+            }
+            return null;
         }
 
     }
