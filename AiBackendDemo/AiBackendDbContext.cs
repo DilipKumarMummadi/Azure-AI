@@ -10,5 +10,6 @@ namespace AiBackendDemo
         }
 
         public DbSet<Models.Action> Actions { get; set; }
+        public DbSet<Models.ActionMemory> ActionMemories { get; set; }
     }
 }

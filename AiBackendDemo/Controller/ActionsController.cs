@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using AiBackendDemo.Repositories;
+using AiBackendDemo.Queries;
 
 namespace AiBackendDemo.Controller
 {
@@ -8,24 +9,10 @@ namespace AiBackendDemo.Controller
     [Route("api/[controller]")]
     public class ActionsController : ControllerBase
     {
-        private readonly IActionsRepository _actionsRepository;
-        public ActionsController(IActionsRepository actionsRepository)
+        private readonly IActionAgentQueryService _actionAgentQueryService;
+        public ActionsController(IActionAgentQueryService actionAgentQueryService)
         {
-            _actionsRepository = actionsRepository;
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Get()
-        {
-            var actions = await _actionsRepository.GetAllActionsAsync();
-            return Ok(actions);
-        }
-
-        [HttpGet("search")]
-        public async Task<IActionResult> Search([FromQuery] string text)
-        {
-            var actions = await _actionsRepository.SearchActionsAsync(text);
-            return Ok(actions);
+            _actionAgentQueryService = actionAgentQueryService;
         }
 
         [HttpGet("semantic-search")]
@@ -34,14 +21,14 @@ namespace AiBackendDemo.Controller
             if (string.IsNullOrWhiteSpace(text))
                 return BadRequest("Search text is required.");
 
-            var results = await _actionsRepository.SemanticSearchAsync(text);
+            var results = await _actionAgentQueryService.SemanticSearchAsync(text);
             return Ok(results);
         }
 
         [HttpGet("{actionId}/summary")]
         public async Task<IActionResult> GetActionSummary([FromRoute] int actionId)
         {
-            var summary = await _actionsRepository.GetActionSummaryAsync(actionId);
+            var summary = await _actionAgentQueryService.GetActionSummaryAsync(actionId);
             return Ok(summary);
         }
 
@@ -50,7 +37,7 @@ namespace AiBackendDemo.Controller
         {
             if (string.IsNullOrWhiteSpace(text))
                 return BadRequest("Search text is required.");
-            var results = await _actionsRepository.RagSearchAsync(text);
+            var results = await _actionAgentQueryService.RagSearchAsync(text);
             return Ok(results);
 
         }

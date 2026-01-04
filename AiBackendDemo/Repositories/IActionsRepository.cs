@@ -9,11 +9,10 @@ namespace AiBackendDemo.Repositories
     public interface IActionsRepository
     {
         Task<IEnumerable<Action>> GetAllActionsAsync();
-        Task<IEnumerable<Action>> SearchActionsAsync(string searchText);
+        Task<Action> GetActionByIdAsync(int actionId);
         Task UpdateActionAsync(Action action);
         Task AddActionAsync(Action action);
-        Task<ActionEmbedding> SemanticSearchAsync(string searchText);
-        Task<string> GetActionSummaryAsync(int actionId);
-        Task<string> RagSearchAsync(string searchText);
+        Task<IEnumerable<Action>> GetAllOpenActionsAsync();
+        Task AddActionMemoryAsync(ActionMemory memory);
     }
 }
