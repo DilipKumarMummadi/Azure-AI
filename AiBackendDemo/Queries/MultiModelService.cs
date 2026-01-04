@@ -66,4 +66,112 @@ public class MultiModelService : IMultiModelService
             .GetProperty("content")
             .GetString()!;
     }
+
+    public async Task<string> ExtractTextFromImageAsync(byte[] imageBytes, CancellationToken ct)
+    {
+        var base64Image = Convert.ToBase64String(imageBytes);
+
+        var payload = new
+        {
+            messages = new object[]
+            {
+            new
+            {
+                role = "system",
+                content = "You are an OCR engine. Extract only visible text. Do not explain or summarize."
+            },
+            new
+            {
+                role = "user",
+                content = new object[]
+                {
+                    new { type = "text", text = "Extract all visible text exactly as shown in the image." },
+                    new
+                    {
+                        type = "image_url",
+                        image_url = new
+                        {
+                            url = $"data:image/png;base64,{base64Image}"
+                        }
+                    }
+                }
+            }
+            },
+            temperature = 0.0
+        };
+        var response = await _httpClient.PostAsJsonAsync(
+            $"openai/deployments/gpt-4o/chat/completions?api-version=2024-02-15-preview",
+            payload,
+            ct);
+
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
+
+        return json
+            .GetProperty("choices")[0]
+            .GetProperty("message")
+            .GetProperty("content")
+            .GetString()!;
+    }
+
+    public async Task<string> AnalyzeImageForIssueAsync(
+    byte[] imageBytes,
+    CancellationToken ct)
+    {
+        var base64Image = Convert.ToBase64String(imageBytes);
+
+        var payload = new
+        {
+            messages = new object[]
+            {
+            new
+            {
+                role = "system",
+                content = """
+You are a technical reasoning assistant.
+Reason only from visible content.
+Do not guess causes that are not shown.
+"""
+            },
+            new
+            {
+                role = "user",
+                content = new object[]
+                {
+                    new
+                    {
+                        type = "text",
+                        text = "Based on this image, what issue or problem does it indicate?"
+                    },
+                    new
+                    {
+                        type = "image_url",
+                        image_url = new
+                        {
+                            url = $"data:image/png;base64,{base64Image}"
+                        }
+                    }
+                }
+            }
+            },
+            temperature = 0.2
+        };
+
+        var response = await _httpClient.PostAsJsonAsync(
+            $"openai/deployments/gpt-4o/chat/completions?api-version=2024-02-15-preview",
+            payload,
+            ct);
+
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
+
+        return json
+            .GetProperty("choices")[0]
+            .GetProperty("message")
+            .GetProperty("content")
+            .GetString()!;
+    }
+
 }

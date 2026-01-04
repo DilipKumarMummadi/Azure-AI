@@ -28,4 +28,28 @@ public class MultiModelController : ControllerBase
         var analysisResult = await _multiModelService.AnalyzeScreenshotAsync(imageBytes, ct);
         return Ok(analysisResult);
     }
+    
+    [HttpPost("extract-text")]
+    [Consumes("multipart/form-data")]
+    [DisableRequestSizeLimit]
+    public async Task<IActionResult> ExtractTextFromImage([FromForm] ExtractTextRequest request, CancellationToken ct)
+    {
+        using var memoryStream = new MemoryStream();
+        await request.FileUpload.CopyToAsync(memoryStream, ct);
+        var imageBytes = memoryStream.ToArray();
+        var extractedText = await _multiModelService.ExtractTextFromImageAsync(imageBytes, ct);
+        return Ok(extractedText);
+    }
+    
+    [HttpPost("analyze-image-issue")]
+    [Consumes("multipart/form-data")]
+    [DisableRequestSizeLimit]
+    public async Task<IActionResult> AnalyzeImageForIssue([FromForm] AnalyzeScreenshotRequest request, CancellationToken ct)
+    {
+        using var memoryStream = new MemoryStream();
+        await request.FileUpload.CopyToAsync(memoryStream, ct);
+        var imageBytes = memoryStream.ToArray();
+        var issueAnalysis = await _multiModelService.AnalyzeImageForIssueAsync(imageBytes, ct);
+        return Ok(issueAnalysis);
+    }
 }
