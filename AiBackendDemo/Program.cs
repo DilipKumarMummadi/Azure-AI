@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddControllers();
 builder.Services.AddHttpClient<IOpenAiClient, OpenAiClient>();
 
@@ -19,6 +20,7 @@ builder.Services.AddScoped<IActionsRepository, ActionsRepository>();
 builder.Services.AddScoped<IActionAgentQueryService, ActionAgentQueryService>();
 builder.Services.AddScoped<IAgentPlanner, AgentPlanner>();
 builder.Services.AddScoped<IAgentToolExecutor, AgentToolExecutor>();
+builder.Services.AddHttpClient<IMultiModelService, MultiModelService>();
 
 // Register DbContext with PostgreSQL
 builder.Services.AddDbContext<AiBackendDbContext>(options =>
