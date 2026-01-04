@@ -12,11 +12,13 @@ namespace AiBackendDemo.Repositories
         private readonly AiBackendDbContext _context;
         private readonly IOpenAiClient _openAiClient;
         private readonly IAgentPlanner _agentPlanner;
-        public ActionsRepository(AiBackendDbContext context, IOpenAiClient openAiClient, IAgentPlanner agentPlanner)
+        private readonly IAgentToolExecutor _toolExecutor;
+        public ActionsRepository(AiBackendDbContext context, IOpenAiClient openAiClient, IAgentPlanner agentPlanner, IAgentToolExecutor toolExecutor)
         {
             _context = context;
             _openAiClient = openAiClient;
             _agentPlanner = agentPlanner;
+            _toolExecutor = toolExecutor;
         }
 
         public async Task<IEnumerable<Action>> GetAllActionsAsync()
@@ -221,6 +223,30 @@ Answer:
                 }
             }
             return null;
+        }
+
+        public async Task ExecuteAgentAsync()
+        {
+            AgentState state = new AgentState();
+            const int MAX_STEPS = 5;
+
+            for (int step = 0; step < MAX_STEPS; step++)
+            {
+                var decision = await _agentPlanner.DecideAsync(state, CancellationToken.None);
+
+                if (decision.Action == AgentAction.STOP)
+                    break;
+
+                var result = await _toolExecutor.ExecuteAsync(decision.Action, state, CancellationToken.None);
+
+                state = new AgentState
+                {
+                    RetrievedActionsCount = result.RetrievedActionsCount,
+                    OverdueActionsCount = result.OverdueActionsCount,
+                    HasSummary = result.HasSummary,
+                    HasSuggestions = result.HasSuggestions
+                };
+            }
         }
 
     }
