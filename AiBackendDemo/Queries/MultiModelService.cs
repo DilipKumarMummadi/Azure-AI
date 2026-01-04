@@ -1,12 +1,14 @@
 
 using System.Text.Json;
+using AiBackendDemo.Clients;
 
 namespace AiBackendDemo.Queries;
 
 public class MultiModelService : IMultiModelService
 {
     private readonly HttpClient _httpClient;
-    public MultiModelService(HttpClient httpClient, IConfiguration config)
+    private readonly IOpenAiClient _openAiClient;
+    public MultiModelService(HttpClient httpClient, IConfiguration config, IOpenAiClient openAiClient)
     {
         var apiKey = config["AzureOpenAI:ApiKey"]
                      ?? Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY");
@@ -16,6 +18,7 @@ public class MultiModelService : IMultiModelService
         if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(endpoint))
             throw new InvalidOperationException("Azure OpenAI config missing");
         _httpClient = httpClient;
+        _openAiClient = openAiClient;
         _httpClient.BaseAddress = new Uri(endpoint);
         _httpClient.DefaultRequestHeaders.Add("api-key", apiKey);
     }
@@ -172,6 +175,48 @@ Do not guess causes that are not shown.
             .GetProperty("message")
             .GetProperty("content")
             .GetString()!;
+    }
+
+    public async Task<string> TranscribeAudioAsync(Stream audioStream, string fileName, CancellationToken ct)
+    {
+        using var content = new MultipartFormDataContent();
+
+        content.Add(
+            new StreamContent(audioStream),
+            "file",
+            fileName);
+            
+        var url = "openai/deployments/whisper/audio/translations?api-version=2024-06-01";
+
+        var response = await _httpClient.PostAsync(url, content, ct);
+
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
+
+        var text = json
+            .GetProperty("text")
+            .GetString()!;
+        
+        var result = await SummarizeTranscriptAsync(text, ct);
+        return result;
+    }
+
+    public async Task<string> SummarizeTranscriptAsync(string transcript, CancellationToken ct)
+    {
+        var prompt = $"""
+Summarize the following conversation in 3–5 bullet points.
+
+Rules:
+- Be factual
+- Do not add assumptions
+- Capture decisions and actions
+
+Transcript:
+{transcript}
+""";
+
+        return await _openAiClient.SummarizeAsync(prompt, ct);
     }
 
 }

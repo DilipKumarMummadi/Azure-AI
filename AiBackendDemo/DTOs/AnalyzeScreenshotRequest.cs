@@ -14,3 +14,9 @@ public class ExtractTextRequest
     [Required]
     public IFormFile FileUpload { get; set; } = default!;
 }
+
+public class TranscribeAudioRequest
+{
+    [Required]
+    public IFormFile AudioFile { get; set; } = default!;
+}

@@ -52,4 +52,16 @@ public class MultiModelController : ControllerBase
         var issueAnalysis = await _multiModelService.AnalyzeImageForIssueAsync(imageBytes, ct);
         return Ok(issueAnalysis);
     }
+    
+    [HttpPost("transcribe-audio")]
+    [Consumes("multipart/form-data")]
+    [DisableRequestSizeLimit]
+    public async Task<IActionResult> TranscribeAudio([FromForm] TranscribeAudioRequest request, CancellationToken ct)
+    {
+        using var memoryStream = new MemoryStream();
+        await request.AudioFile.CopyToAsync(memoryStream, ct);
+        memoryStream.Position = 0;
+        var transcription = await _multiModelService.TranscribeAudioAsync(memoryStream, request.AudioFile.FileName, ct);
+        return Ok(transcription);
+    }
 }
