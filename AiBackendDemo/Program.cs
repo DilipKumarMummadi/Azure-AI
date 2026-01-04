@@ -4,6 +4,7 @@ using AiBackendDemo;
 using AiBackendDemo.Repositories;
 using AiBackendDemo.Services;
 using AiBackendDemo.Clients;
+using AiBackendDemo.Queries;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,10 @@ builder.Services.AddHttpClient<IOpenAiClient, OpenAiClient>();
 
 builder.Services.AddScoped<IAiTextClassifier, AiTextClassifier>();
 builder.Services.AddScoped<IActionsRepository, ActionsRepository>();
+builder.Services.AddScoped<IActionAgentQueryService, ActionAgentQueryService>();
+builder.Services.AddScoped<IAgentPlanner, AgentPlanner>();
+builder.Services.AddScoped<IAgentToolExecutor, AgentToolExecutor>();
+
 // Register DbContext with PostgreSQL
 builder.Services.AddDbContext<AiBackendDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("StardomConnectionString")));
